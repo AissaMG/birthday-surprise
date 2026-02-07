@@ -7,7 +7,6 @@ import { Heart, Sparkles } from 'lucide-react';
 // Love quotes that will appear
 const loveQuotes = [
   "You are my sunshine ☀️",
-  "I love you more than anything 💕",
   "My heart beats for you ❤️",
   "Always remember our first glance 😊",
   "With you, everything is magical ✨",
