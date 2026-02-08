@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { Heart, Sparkles } from 'lucide-react';
 
@@ -36,49 +36,8 @@ export default function HeroSection() {
   const [floatingQuotes, setFloatingQuotes] = useState<FloatingQuote[]>([]);
   const [quoteIdCounter, setQuoteIdCounter] = useState(0);
 
-  // Effet typewriter
-  useEffect(() => {
-    let index = 0;
-    const timer = setInterval(() => {
-      if (index < fullText.length) {
-        setText(fullText.slice(0, index + 1));
-        index++;
-      } else {
-        setIsComplete(true);
-        clearInterval(timer);
-      }
-    }, 100);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Générer des phrases d'amour qui apparaissent et disparaissent
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const randomQuote = loveQuotes[Math.floor(Math.random() * loveQuotes.length)];
-      const randomX = Math.random() * 70 + 15; // Entre 15% et 85%
-      const randomY = Math.random() * 70 + 15; // Entre 15% et 85%
-      
-      const newQuote: FloatingQuote = {
-        id: quoteIdCounter,
-        text: randomQuote,
-        x: randomX,
-        y: randomY
-      };
-
-      setFloatingQuotes(prev => [...prev, newQuote]);
-      setQuoteIdCounter(prev => prev + 1);
-
-      // Supprimer la phrase après 4 secondes
-      setTimeout(() => {
-        setFloatingQuotes(prev => prev.filter(q => q.id !== newQuote.id));
-      }, 4000);
-    }, 1800); // Nouvelle phrase toutes les 1.8 secondes
-
-    return () => clearInterval(interval);
-  }, [quoteIdCounter]);
-
-  const triggerConfetti = () => {
+  // Confetti function - defined first
+  const triggerConfetti = React.useCallback(() => {
     const duration = 3000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -107,7 +66,62 @@ export default function HeroSection() {
         origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
       });
     }, 250);
-  };
+  }, []);
+
+  // Effet typewriter
+  useEffect(() => {
+    let index = 0;
+    const timer = setInterval(() => {
+      if (index < fullText.length) {
+        setText(fullText.slice(0, index + 1));
+        index++;
+      } else {
+        setIsComplete(true);
+        clearInterval(timer);
+      }
+    }, 100);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Auto-trigger confetti every 5 seconds after login + immediate first trigger
+  useEffect(() => {
+    // Trigger confetti immediately on mount (when logged in)
+    triggerConfetti();
+    
+    // Then trigger every 5 seconds
+    const autoConfetti = setInterval(() => {
+      triggerConfetti();
+    }, 5000); // 5 seconds = 5000 milliseconds
+
+    return () => clearInterval(autoConfetti);
+  }, [triggerConfetti]);
+
+  // Générer des phrases d'amour qui apparaissent et disparaissent
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomQuote = loveQuotes[Math.floor(Math.random() * loveQuotes.length)];
+      const randomX = Math.random() * 70 + 15; // Entre 15% et 85%
+      const randomY = Math.random() * 70 + 15; // Entre 15% et 85%
+      
+      const newQuote: FloatingQuote = {
+        id: quoteIdCounter,
+        text: randomQuote,
+        x: randomX,
+        y: randomY
+      };
+
+      setFloatingQuotes(prev => [...prev, newQuote]);
+      setQuoteIdCounter(prev => prev + 1);
+
+      // Supprimer la phrase après 4 secondes
+      setTimeout(() => {
+        setFloatingQuotes(prev => prev.filter(q => q.id !== newQuote.id));
+      }, 4000);
+    }, 1800); // Nouvelle phrase toutes les 1.8 secondes
+
+    return () => clearInterval(interval);
+  }, [quoteIdCounter]);
 
   return (
     <section className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -178,17 +192,6 @@ export default function HeroSection() {
           Today is a special day, because it's YOUR day. 
           Get ready for a little surprise...
         </p>
-
-        <button
-          onClick={triggerConfetti}
-          className="glass-card px-6 py-3 sm:px-8 sm:py-4 md:px-10 md:py-5 rounded-full text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-amber-500/20 to-pink-500/20 hover:from-amber-500/30 hover:to-pink-500/30 text-white hover:scale-105 sm:hover:scale-110 transition-all duration-500 inline-flex items-center gap-2 sm:gap-3 md:gap-4 shadow-2xl border-2 border-amber-400/30 hover:border-amber-400/60 w-auto"
-        >
-          <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-red-500 animate-pulse drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]" fill="currentColor" />
-          <span className="bg-gradient-to-r from-amber-200 via-pink-200 to-purple-200 bg-clip-text text-transparent font-extrabold whitespace-nowrap">
-            Click to Celebrate!
-          </span>
-          <Heart className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-red-500 animate-pulse drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]" fill="currentColor" />
-        </button>
 
         {/* Decorative bottom elements - Smaller on mobile */}
         <div className="absolute -bottom-3 sm:-bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1.5 sm:gap-2">
